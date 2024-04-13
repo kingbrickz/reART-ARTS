@@ -120,25 +120,39 @@ $result = $conn->query($sql);
 
 // Check if there are any posts
 if ($result->num_rows > 0) {
-    // Output data of each row
-    while($row = $result->fetch_assoc()) {
-        // Display each post
-		echo '<div class="card" style="width: 18rem;">
-		<img src="' . $row['picture_path'] . '" class="card-img-top" alt="...">
-		<div class="card-body">
-			<h5 class="card-title">' . $row['content'] . '</h5>
-			<p class="card-text">Created at ' . $row['created_at'] . '</p>
-		</div>';
-    }
-} else {
-    // Display a message if there are no posts
-    echo "No posts found.";
-}
+  // Output data of each row
+  while($row = $result->fetch_assoc()) {
+      // Display each post
+      echo '<div class="card" style="width: 18rem;">
+              <input type="hidden" name="id" value="' . $row['id'] . '" />
+              <img src="' . $row['picture_path'] . '" class="card-img-top" alt="...">
+              <div class="card-body">
+                  <h5 class="card-title">' . $row['content'] . '</h5>
+                  <p class="card-text">Created at ' . $row['created_at'] . '</p>
+                  <div class="btn-group" role="group" aria-label="Post Actions">
+                      <form action="../view/editpost.php" method="post" style="margin-right: 5px;">
+                          <input type="hidden" name="post_id" value="' . $row['id'] . '">
+                          <button type="submit" class="btn btn-primary">Edit</button>
+                      </form>
+                      <form action="../actions/deletepost.php" method="post">
+                          <input type="hidden" name="post_id" value="' . $row['id'] . '">
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
+                  </div>
+              </div>
+            </div>';
+  }
 
+
+} else {
+  // Display a message if there are no posts
+  echo "No posts found.";
+}
 
 // Close the database connection
 $conn->close();
 ?>
+ 
 
 <script>
     function editAbout() {
@@ -194,8 +208,6 @@ $conn->close();
 
 <script>
     function openProfilePictureModal() {
-      // Example: Open a modal with file input for uploading a new profile picture
-      // You can replace this with your own modal implementation
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInput.accept = 'image/*';
@@ -207,7 +219,6 @@ $conn->close();
           reader.onload = function () {
             const profilePicture = document.getElementById('profile-picture');
             profilePicture.src = reader.result;
-            // Here you can upload the file to the server using AJAX
           };
           reader.readAsDataURL(file);
         }
@@ -217,7 +228,6 @@ $conn->close();
     }
     
   </script>
-  <!-- Add this script to the end of your HTML body -->
 <script>
     // Function to display modal with enlarged image
     function displayModal(imageSrc) {
@@ -249,7 +259,6 @@ $conn->close();
     }
 </script>
 
-<!-- Add this modal at the end of your HTML body -->
 <div id="myModal" class="modal">
     <span class="close" onclick="closeModal()">&times;</span>
     <img class="modal-content" id="img01">
@@ -259,7 +268,6 @@ $conn->close();
 
 
 
-<!-- Add this script to the end of your HTML body -->
 <script>
   // Function to handle form submission for new post
   document.addEventListener('DOMContentLoaded', function () {
@@ -271,7 +279,6 @@ $conn->close();
       // Get the form data
       const formData = new FormData(newPostForm);
 
-      // Perform any client-side validation here if needed
 
       // Send the form data to the server using Fetch API
       fetch('../actions/create_post.php', {
@@ -298,5 +305,50 @@ $conn->close();
     <script src="assets/js/breakpoints.min.js"></script>
     <script src="assets/js/util.js"></script>
     <script src="assets/js/main.js"></script>
+
+<script>
+// Function to handle triple-click event
+function handleTripleClick(postId) {
+    // Prompt the user for confirmation
+    if (confirm("Are you sure you want to delete this post?")) {
+        // If confirmed, send an AJAX request to delete the post
+        fetch('../actions/deletepost.php?post_id=' + postId, {
+            method: 'post'
+        })
+        .then(response => {
+            if (response.ok) {
+                // If the request is successful, remove the post element from the DOM
+                const postElement = document.getElementById('post_' + postId);
+                postElement.remove();
+                window.location.reload();
+            } else {
+          // Handle error if needed
+          console.error('Error:', response.statusText);
+        }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Get all post elements
+var posts = document.querySelectorAll('.card');
+
+// Loop through each post element and add a triple-click event listener
+posts.forEach(function(post) {
+    var clickCount = 0;
+    post.addEventListener('click', function() {
+        clickCount++;
+        if (clickCount === 3) {
+            handleTripleClick(post.id.split('_')[1]); 
+            console.log(post.id.split('_')[1]);// Exct postId from the post id
+            clickCount = 0; // Reset click count
+        }
+    });
+});
+
+</script>
+
 </body>
 </html>

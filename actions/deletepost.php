@@ -1,27 +1,40 @@
 <?php
-include "../settings/connection.php";
+// Include database connection
+include '../settings/connection.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
-    $json_data = file_get_contents('php://input');
-    $data = json_decode($json_data, true);
+// Check if the request method is DELETE
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Check if the post ID is provided in the request parameters
+    if (isset($_POST['post_id'])) {
+        // Sanitize the post ID to prevent SQL injection
+        $post_id = mysqli_real_escape_string($conn, $_POST['post_id']);
 
-    $postId = $data['id'];
+        // SQL query to delete the post from the database
+        $sql = "DELETE FROM post WHERE id = $post_id";
+        $sqli = "DELETE FROM likes WHERE postId = $post_id";
 
-    $sql = "DELETE FROM POST WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $postId);
 
-    $response = array("success" => false); 
-    
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            $response["success"] = true;
+        // Execute the delete query
+        if (mysqli_query($conn, $sql)) {
+            mysqli_query($conn, $sqli);
+            
+            // Post deleted successfully
+            header("Location: ../view/profile.php");
+
+
+        } else {
+            // Error deleting post
+            echo "Error deleting post: " . mysqli_error($conn);
         }
     } else {
-        $response["error"] = "Error executing deletion query: " . $stmt->error;
+        // Post ID is not provided in the request parameters
+        echo "Post ID is required.";
     }
-    echo json_encode($response);
-    $stmt->close();
-    $conn->close();
+} else {
+    // Invalid request method
+    echo "Invalid request method.";
 }
+
+// Close database connection
+mysqli_close($conn);
+?>

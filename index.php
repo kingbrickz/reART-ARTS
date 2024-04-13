@@ -1,5 +1,4 @@
 <?php
-// Include the connection settings file
 session_start();
 include("settings/connection.php");
 
@@ -120,7 +119,7 @@ if ($result->num_rows > 0) {
     images.forEach(function(image) {
         image.addEventListener('dblclick', function() {
             var postId = this.id.split('_')[1]; // Extract postId from the image id
-            var userId = <?php echo $user_Id; ?>; // Assuming you have the logged in user's ID stored in $loggedInUserId
+            var userId = <?php echo $user_Id; ?>; 
 
             // Send AJAX request to update likes
             var xhr = new XMLHttpRequest();
